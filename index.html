@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Taller Vista de consulta DAX</title>
+<style>
+:root{--bg:#14151a;--card:rgba(255,255,255,.045);--line:rgba(255,255,255,.12);--gold:#F2C811;--gold-dim:rgba(242,200,17,.16);--text:#f3f4f7;--mute:#9a9ca8}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:"Segoe UI",Inter,system-ui,sans-serif}
+body{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:48px 8vw;
+  background:radial-gradient(900px 500px at 85% 10%,rgba(242,200,17,.12),transparent 60%),radial-gradient(700px 500px at 0% 100%,rgba(168,155,240,.08),transparent 60%),var(--bg)}
+.brand{display:flex;align-items:center;gap:14px;margin-bottom:46px}
+.logo{width:42px;height:42px;border-radius:11px;background:var(--gold);display:grid;place-items:center}
+.logo svg{width:22px;height:22px}
+.brand b{display:block;font-size:18px}.brand small{color:var(--mute);font-size:13px}
+.eyebrow{color:var(--gold);font-weight:800;letter-spacing:.18em;font-size:15px;text-transform:uppercase;margin-bottom:14px}
+h1{font-size:clamp(40px,6vw,82px);line-height:1.05;font-weight:700;letter-spacing:-.01em;max-width:1000px}
+em{color:var(--gold);font-style:normal}
+.lead{color:var(--mute);font-size:clamp(16px,1.6vw,22px);margin-top:22px;max-width:760px;line-height:1.5}
+.layout{display:flex;flex-direction:column;align-items:flex-start;gap:28px;margin-top:40px;max-width:1100px}
+.go{display:inline-block;text-decoration:none;background:var(--gold);color:#14151a;font-weight:800;font-size:20px;padding:16px 34px;border-radius:14px;transition:opacity .5s,transform .5s,box-shadow .25s}
+.go{opacity:0;visibility:hidden;pointer-events:none;transform:translateY(10px)}
+.go.show{opacity:1;visibility:visible;pointer-events:auto;transform:none}
+.go.show:hover{transform:translateY(-3px);box-shadow:0 10px 30px rgba(242,200,17,.28)}
+.btns{display:flex;flex-direction:column;gap:22px}
+a.btn{display:block;flex:1;text-decoration:none;color:var(--text);background:var(--card);border:1px solid var(--line);border-radius:20px;padding:28px 30px;transition:.25s}
+a.btn:hover{border-color:var(--gold);background:var(--gold-dim);transform:translateY(-4px)}
+a.btn .n{width:34px;height:34px;border-radius:50%;background:var(--gold);color:#14151a;display:grid;place-items:center;font-weight:800;font-size:14px;margin-bottom:16px}
+a.btn h2{font-size:28px;margin-bottom:8px}
+a.btn p{color:var(--mute);font-size:16px;line-height:1.5}
+a.btn span{display:inline-block;margin-top:18px;color:var(--gold);font-weight:700;font-size:15px}
+.speaker{display:flex;align-items:flex-start;gap:28px;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:34px}
+.speaker img{width:170px;height:170px;border-radius:50%;object-fit:cover;object-position:center 20%;border:4px solid var(--gold);flex-shrink:0;margin-top:14px}
+.speaker h3{font-size:28px;margin-bottom:5px}
+.speaker .role{color:var(--gold);font-size:16px;font-weight:700;margin-bottom:14px;line-height:1.4}
+.speaker .bio{color:var(--text);font-size:15px;line-height:1.6;margin-bottom:16px;font-weight:500}
+.speaker ul{list-style:none;display:grid;gap:8px}
+.speaker li{color:var(--mute);font-size:15px;line-height:1.5;padding-left:18px;position:relative}
+.speaker li::before{content:"";position:absolute;left:0;top:8px;width:6px;height:6px;border-radius:50%;background:var(--gold)}
+@media(max-width:900px){.layout{grid-template-columns:1fr}}
+@media(max-width:700px){.speaker{flex-direction:column;align-items:center;text-align:center}.speaker li{text-align:left}}
+</style>
+</head>
+<body>
+  <div class="brand">
+    <div class="logo"><svg viewBox="0 0 24 24" fill="#14151a"><rect x="3" y="12" width="4" height="9" rx="1"/><rect x="10" y="6" width="4" height="15" rx="1"/><rect x="17" y="2" width="4" height="19" rx="1"/></svg></div>
+    <div><b>Vista de consulta DAX · Taller práctico</b><small>Escribe, prueba y lleva tu DAX al modelo</small></div>
+  </div>
+  <div class="eyebrow">Taller práctico</div>
+  <h1>Vista de consulta <em>DAX</em></h1>
+  <p class="lead">Aprende a escribir, ejecutar y probar consultas y medidas DAX directamente en Power BI Desktop, sin crear visuales.</p>
+  <div class="layout">
+    <div class="speaker">
+      <img src="deyvit-jeri.png" alt="Deyvit Jeri">
+      <div>
+        <h3>Deyvit Jeri</h3>
+        <div class="role">Consultor y formador de Power BI · Fundador del canal RapidExcel</div>
+        <p class="bio">Ayudo a profesionales y empresas a pasar de hojas de cálculo a modelos de datos sólidos, combinando Power BI, DAX e Inteligencia Artificial para automatizar y acelerar el análisis de negocio.</p>
+        <ul>
+          <li>+9 años de experiencia enseñando Power BI, Excel y DAX a personas de negocio, sin perfil técnico</li>
+          <li>Power BI Consultant en 365 Global Consulting (Reino Unido) desde 2024</li>
+          <li>Consultorías de analítica y modelado de datos para Sisol Salud, Agromercado-MIDAGRI y Wynwood House</li>
+          <li>Creador de contenido en YouTube con el canal RapidExcel, enfocado en Excel, Power BI y productividad</li>
+        </ul>
+      </div>
+    </div>
+    <a class="go" href="01_consulta_dax_practico.html">Comenzar el taller →</a>
+  </div>
+<script>
+(function(){
+  var b=document.querySelector(".go");
+  function show(){b.classList.add("show")}
+  document.addEventListener("click",function(e){if(!b.classList.contains("show")&&!e.target.closest(".go")){show()}});
+  document.addEventListener("keydown",function(e){
+    var k=e.key;
+    if(!b.classList.contains("show")){if(k===" "||k==="ArrowRight"||k==="ArrowDown"||k==="Enter"||k==="PageDown"){e.preventDefault();show()}}
+    else if(k==="Enter"||k==="ArrowRight"){location.href=b.getAttribute("href")}
+  });
+})();
+</script>
+</body>
+</html>

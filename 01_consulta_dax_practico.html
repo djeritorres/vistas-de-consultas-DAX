@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Taller DAX · Vista de consulta · Práctico</title>
+<style>
+:root{
+  --bg:#14151a; --bg2:#1b1c23; --card:rgba(255,255,255,.045); --line:rgba(255,255,255,.12);
+  --gold:#F2C811; --gold-dim:rgba(242,200,17,.16); --text:#f3f4f7; --mute:#9a9ca8; --violet:#a89bf0; --green:#6fd6a3;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:"Segoe UI",Inter,system-ui,sans-serif;overflow:hidden}
+body::before{content:"";position:fixed;inset:0;background:
+  radial-gradient(900px 500px at 85% 20%,rgba(242,200,17,.10),transparent 60%),
+  radial-gradient(700px 500px at 0% 100%,rgba(168,155,240,.07),transparent 60%);pointer-events:none}
+/* top bar */
+header{position:fixed;top:0;left:0;right:0;padding:22px 44px 0;z-index:10}
+.brand{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+.logo{width:38px;height:38px;border-radius:10px;background:var(--gold);display:grid;place-items:center}
+.logo svg{width:20px;height:20px}
+.brand b{display:block;font-size:17px;font-weight:600}
+.brand small{color:var(--mute);font-size:12px}
+nav{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+.tab{display:flex;align-items:center;gap:12px;padding:11px 16px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.025);cursor:pointer;color:var(--mute);transition:.25s}
+.tab .n{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--mute);display:grid;place-items:center;font-size:11px;font-weight:700;flex:none}
+.tab b{display:block;font-size:14px;font-weight:600}
+.tab small{font-size:10px;letter-spacing:.08em;text-transform:uppercase;opacity:.75}
+.tab:hover{border-color:rgba(242,200,17,.5)}
+.tab.on{background:var(--gold-dim);border-color:var(--gold);color:var(--text)}
+.tab.on .n{background:var(--gold);border-color:var(--gold);color:#14151a}
+.tab.done .n{border-color:var(--gold);color:var(--gold)}
+/* slides */
+main{position:absolute;inset:0}
+.slide{position:absolute;inset:0;overflow-y:auto;padding:clamp(178px,21vh,210px) 72px 90px;display:flex;flex-direction:column;justify-content:flex-start;opacity:0;visibility:hidden;transform:translateX(30px);transition:opacity .45s,transform .45s,visibility .45s}
+.slide.on{opacity:1;visibility:visible;transform:none}
+.slide.past{transform:translateX(-30px)}
+.eyebrow{color:var(--gold);font-weight:800;letter-spacing:.18em;font-size:15px;text-transform:uppercase;margin-bottom:14px}
+h1,h2{font-weight:700;line-height:1.08;letter-spacing:-.01em;max-width:1100px}
+h1{font-size:clamp(38px,5.4vw,72px)}
+h2{font-size:clamp(32px,4.2vw,56px);margin-bottom:34px}
+em{color:var(--gold);font-style:normal}
+.lead{color:var(--mute);font-size:clamp(16px,1.6vw,22px);margin-top:22px;max-width:820px;line-height:1.5}
+.row{display:flex;gap:28px;align-items:stretch;flex-wrap:wrap}
+.col{flex:1 1 380px;min-width:300px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px 24px;backdrop-filter:blur(4px)}
+.card h3{font-size:19px;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.card p{color:var(--mute);font-size:20px;line-height:1.5}
+.tag{font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;background:rgba(168,155,240,.2);color:var(--violet);letter-spacing:.06em}
+.tag.g{background:var(--gold-dim);color:var(--gold)} .tag.k{background:rgba(111,214,163,.16);color:var(--green)}
+ul.pts{list-style:none;display:grid;gap:14px}
+ul.pts li{display:block;position:relative;padding-left:24px;font-size:clamp(16px,1.6vw,21px);line-height:1.45}
+ul.pts li::before{content:"";position:absolute;left:0;top:.6em;width:9px;height:9px;border-radius:50%;background:var(--gold)}
+code{font-family:Consolas,"Cascadia Code",monospace;font-size:.88em;background:rgba(255,255,255,.08);padding:1px 6px;border-radius:6px;color:#d9dbe4}
+pre{font-family:Consolas,"Cascadia Code",monospace;font-size:clamp(12px,1.2vw,16px);line-height:1.65;color:#d9dbe4;white-space:pre;overflow:hidden}
+pre .k,code .k{color:#8f8cff} pre .g,code .g{color:#4fb3ff} pre .t,code .t{color:#d6e0ff} pre .m,code .m{color:#c18cf0} pre .v,code .v{color:#2fc0b0} pre .s,code .s{color:#ee7b6e} pre .c{color:var(--mute)}
+code.key{color:var(--gold)}
+.codehead{display:flex;gap:7px;margin-bottom:14px}.codehead i{width:11px;height:11px;border-radius:50%;background:#3a3c47}
+.cap{font-size:12px;color:var(--mute);margin-top:12px}
+.big{font-size:clamp(46px,6vw,84px);font-weight:800;color:var(--gold);line-height:1}
+.arrow{align-self:center;color:var(--gold);font-size:34px}
+/* timeline */
+.tl{display:grid;grid-template-columns:repeat(6,1fr);gap:0;position:relative;margin-top:8px}
+.tl::before{content:"";position:absolute;left:4%;right:4%;top:15px;height:2px;background:var(--line)}
+.tl .pt{position:relative;text-align:center;padding:0 8px}
+.tl .dot{width:30px;height:30px;border-radius:50%;background:var(--bg);border:2px solid var(--gold);margin:0 auto 14px;position:relative;z-index:1;display:grid;place-items:center;color:var(--gold);font-size:12px;font-weight:800}
+.tl b{display:block;font-size:15px;color:var(--gold)} .tl span{font-size:14px;color:var(--text);display:block;margin-top:4px;line-height:1.35}
+.tl small{display:block;color:var(--mute);font-size:12px;margin-top:4px}
+a{color:var(--gold)}
+.grid.fgrid{align-items:stretch;grid-template-columns:repeat(3,1fr)!important}
+.fgrid .card.src:last-child{grid-column:span 2;align-self:start}.fgrid .card.src:last-child ul{display:grid;grid-template-columns:1fr 1fr;gap:10px 24px}
+.card.src ul{list-style:none;display:flex;flex-direction:column;gap:10px}
+.card.src li{font-size:20px;line-height:1.3}
+.card.src li a{text-decoration:underline;text-underline-offset:3px}
+.card.src li small{display:block;color:var(--mute);font-size:14px;margin-top:2px}
+.slide.tight .fgrid .card.src h3{font-size:20px;color:var(--gold);margin-bottom:12px}
+
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.grid .card{padding:16px 18px}.grid .card h3{font-size:17px}.grid .card p{font-size:20px}
+.grid .card small{display:block;color:var(--gold);font-size:12px;margin-bottom:6px;letter-spacing:.04em}
+.en{color:var(--text);font-weight:600;font-size:15px;display:block;margin-top:2px}
+.es{color:var(--mute);font-size:14px;display:block;margin-top:2px}
+.homes{margin-left:auto;display:flex;gap:10px}.home.next{border-color:var(--gold);color:var(--gold);background:var(--gold-dim)}
+.home{display:inline-flex;gap:6px;align-items:center;padding:8px 14px;border:1px solid var(--line);border-radius:10px;color:var(--text);text-decoration:none;font-size:13px}
+.home:hover{border-color:var(--gold);color:var(--gold)}
+.callout{border-left:3px solid var(--gold);padding:10px 16px;background:var(--gold-dim);border-radius:0 12px 12px 0;font-size:20px;margin-top:18px}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(242,200,17,.55)}70%{box-shadow:0 0 0 14px rgba(242,200,17,0)}100%{box-shadow:0 0 0 0 rgba(242,200,17,0)}}
+.demo-badge{display:inline-flex;align-items:center;gap:8px;background:var(--gold);color:#14151a;font-weight:800;font-size:14px;letter-spacing:.08em;padding:8px 16px;border-radius:99px;animation:pulse 1.8s infinite;white-space:nowrap}
+.eyebrow.demo{display:flex;align-items:center;gap:12px}
+.eyebrow.demo::before{content:"";width:12px;height:12px;border-radius:50%;background:#ff5a4f;animation:pulse 1.4s infinite}
+.demobar{border:2px solid var(--gold);border-radius:16px;background:rgba(242,200,17,.10);padding:12px 18px;margin-top:64px;animation:pulse 2.2s infinite}
+.demobar .dlabel{font-weight:800;color:var(--gold);letter-spacing:.06em;font-size:15px;display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.demobar.solo .dlabel{margin-bottom:0}
+.demobar .rec{width:11px;height:11px;border-radius:50%;background:#ff5a4f;animation:pulse 1.4s infinite}
+.dchips{display:flex;flex-wrap:wrap;gap:8px 14px;font-size:15px}
+.dchips span{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.07);border-radius:99px;padding:5px 14px 5px 6px}
+.dchips i{font-style:normal;width:22px;height:22px;border-radius:50%;background:var(--gold);color:#14151a;font-weight:800;font-size:12px;display:grid;place-items:center}
+.demobar .dnote{margin-top:8px;font-size:13px;color:var(--mute)}
+.dsteps{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.dstep{background:var(--card);border:1px solid var(--gold);border-radius:18px;padding:18px 20px}
+.dstep .num{width:36px;height:36px;border-radius:50%;background:var(--gold);color:#14151a;font-weight:800;display:grid;place-items:center;margin-bottom:12px}
+.dstep h3{font-size:18px;margin-bottom:6px}.dstep p{color:var(--mute);font-size:20px;line-height:1.5}
+.warn{border-left:3px solid #ff8a5b;background:rgba(255,138,91,.12);padding:10px 16px;border-radius:0 12px 12px 0;font-size:15px;margin-top:14px;line-height:1.5}
+@media(max-width:900px){.dsteps{grid-template-columns:1fr 1fr}}
+@media(max-width:900px){.grid{grid-template-columns:1fr}}
+@media(max-height:660px){.slide{overflow-y:auto}.cap{display:none}.slide{padding:128px 40px 40px}h1{font-size:44px}h2{font-size:34px;margin-bottom:16px}pre{font-size:11.5px;line-height:1.45}.card{padding:12px 16px}.card p{font-size:14px}ul.pts{gap:9px}ul.pts li{font-size:15px}.lead{font-size:15px;margin-top:12px}.callout{font-size:14px;margin-top:12px}header{padding:14px 28px 0}.brand{margin-bottom:10px}.tab{padding:7px 12px}}
+.src li{font-size:13px;color:var(--mute);line-height:1.5}
+.src ul{list-style:none;display:grid;gap:7px;columns:2;column-gap:36px}
+.srcgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 36px;align-items:start}
+.grp{margin-bottom:14px}.grp h3{color:var(--gold);font-size:14px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
+.grp ul{list-style:none;display:grid;gap:5px}.grp li{font-size:13px;color:var(--mute);line-height:1.45;overflow-wrap:anywhere}
+.grp li b{color:var(--text)}
+/* steps */
+.step{opacity:0;transform:translateY(18px);transition:opacity .5s,transform .5s;pointer-events:none}
+.step.show{opacity:1;transform:none;pointer-events:auto}
+/* footer */
+footer{position:fixed;left:0;right:0;bottom:0;padding:0 44px 18px;display:flex;justify-content:space-between;align-items:center;color:var(--mute);font-size:12px;z-index:10}
+.bar{position:fixed;left:0;bottom:0;height:3px;background:var(--gold);transition:width .4s;z-index:11}
+.hint{opacity:.7}
+@media(max-width:900px){header{padding:14px 18px 0}.slide{padding:150px 24px 60px}.tab small{display:none}.tl{grid-template-columns:1fr 1fr;gap:20px}.tl::before{display:none}}
+
+.grp{flex:1 1 380px;min-height:300px;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:26px 28px}
+.grp h3{font-size:26px;margin-bottom:6px}.grp>p{color:var(--mute);font-size:20px;margin-bottom:18px}
+.chips{display:flex;flex-wrap:wrap;gap:10px}
+.chips code{font-size:clamp(14px,1.4vw,18px);padding:6px 12px;border-radius:10px}
+.cmp{width:100%;border-collapse:separate;border-spacing:0;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--card)}
+.cmp th,.cmp td{padding:14px 18px;text-align:left;vertical-align:top;font-size:20px;line-height:1.5;border-bottom:1px solid var(--line)}
+.cmp tr:last-child td{border-bottom:0}
+.cmp th{background:var(--gold-dim);color:var(--gold);font-size:16px;letter-spacing:.06em;text-transform:uppercase}
+.cmp td:first-child{color:var(--mute);width:20%}
+.cmp .bad{color:#ff8a80}.cmp .ok{color:var(--green)}
+.cmp code{white-space:normal}
+.slide.tight h2{font-size:clamp(26px,3vw,42px);margin-bottom:14px;max-width:1300px}
+.slide.tight .callout{margin-top:10px}
+.slide.tight .grid{grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px!important}
+.slide.tight .grid .card{padding:14px 16px}
+.slide.tight .grid .card h3{font-size:15px}
+.slide.tight .demobar{margin-top:64px}
+@media(max-width:1100px){.slide.tight .grid{grid-template-columns:1fr 1fr}}
+@media(max-width:700px){.slide.tight .grid{grid-template-columns:1fr}}
+pre{-webkit-user-select:text;user-select:text;cursor:text}
+.copybtn{position:absolute;top:14px;right:16px;background:var(--gold-dim);color:var(--gold);border:1px solid var(--gold);border-radius:8px;padding:4px 12px;font:600 13px "Segoe UI",sans-serif;cursor:pointer}
+.copybtn:hover{background:var(--gold);color:#14151a}
+.slide{scrollbar-width:none}
+.slide::-webkit-scrollbar{display:none}
+.slide.tight{padding-top:clamp(160px,18vh,180px);padding-bottom:76px}
+.slide.tight .row .card{padding:16px 20px}
+.cxgrid .card.cx{padding:12px 16px}
+.cxgrid .card.cx h3{font-size:16px;margin-bottom:6px}
+.cxgrid .card.cx .codehead{margin-bottom:8px}
+.cxgrid pre{font-size:clamp(11.5px,1vw,14px);line-height:1.42}
+@media(max-width:1100px){.cxgrid{grid-template-columns:1fr!important}}
+
+.cxgrid pre{font-size:clamp(12px,.85vw,16px)!important}
+.cxgrid .card.cx h3{font-size:clamp(16px,1.05vw,20px)}
+.cxgrid .card.cx small{font-size:clamp(12px,.8vw,15px)}
+.fit{width:100%}
+</style>
+<body>
+<header>
+  <div class="brand">
+    <div class="logo"><svg viewBox="0 0 24 24" fill="#14151a"><rect x="3" y="12" width="4" height="9" rx="1"/><rect x="10" y="6" width="4" height="15" rx="1"/><rect x="17" y="2" width="4" height="19" rx="1"/></svg></div>
+    <div><b>Vista de consulta DAX · Taller práctico</b><small>Ejercicios paso a paso</small></div>
+    <div class="homes"><a class="home" href="index.html" onclick="event.stopPropagation()">← Inicio</a></div>
+  </div>
+  <nav id="nav"></nav>
+</header>
+<main id="main">
+
+<section class="slide" data-sec="0">
+  <div class="eyebrow">Pregunta 1 · Conocimiento general</div>
+  <h2>¿Cuántos <em>tipos de resultado</em> devuelve DAX?</h2>
+  <div class="row" style="flex-wrap:nowrap;align-items:stretch">
+    <div class="col card step"><h3>🔢 Valor escalar <span class="tag g">1 VALOR</span></h3><p>Un único valor: un número, un texto, una fecha o un valor verdadero/falso.</p></div>
+    <div class="col card step"><h3>▦ Tabla <span class="tag">N FILAS</span></h3><p>Un conjunto de filas y columnas.</p></div>
+  </div>
+  <div class="callout step"><b>Respuesta:</b> Dos. Toda expresión DAX devuelve un valor escalar o una tabla.</div>
+  <div class="callout step"><b>¿Qué es un valor escalar?</b> Es un solo dato: un número, un texto o una fecha. Por ejemplo, el total de ventas del año o el nombre de un cliente. Una tabla, en cambio, tiene varias filas y columnas.</div>
+</section>
+
+<section class="slide" data-sec="0">
+  <div class="eyebrow">Pregunta 2 · Conocimiento general</div>
+  <h2>¿Cómo saber si el resultado de una función es <em>un valor escalar o una tabla</em>?</h2>
+  <div class="grid">
+    <div class="card step"><small>OPCIÓN 1</small><h3>Probando</h3><p>Escribe la función y mira qué devuelve. Si es un valor escalar, se crea una medida; si es una tabla, una tabla calculada.</p></div>
+    <div class="card step"><small>OPCIÓN 2</small><h3>Leyendo la documentación</h3><p>Cada función indica su <b>valor devuelto</b>: un escalar o una tabla.</p></div>
+    <div class="card step"><small>OPCIÓN 3</small><h3>Mirando el error</h3><p>Si usas una tabla donde se espera un escalar (o al revés), DAX te lo dice.</p></div>
+  </div>
+  <div class="callout step">Documentación: <a href="https://dax.guide" target="_blank" style="color:var(--gold)">dax.guide</a> (SQLBI, referencia de todas las funciones DAX) · <a href="https://learn.microsoft.com/es-es/dax/" target="_blank" style="color:var(--gold)">Microsoft Learn: referencia DAX</a></div>
+  <div class="demobar solo step"><div class="dlabel"><span class="rec"></span>🎬 DEMO EN VIVO · usar funciones DAX para probar un resultado escalar y una tabla</div></div>
+</section>
+
+<section class="slide" data-sec="0">
+  <div class="eyebrow">Pregunta 3 · Conocimiento general</div>
+  <h2>¿Qué funciones conoces que devuelvan <em>un valor escalar</em> o <em>una tabla</em>?</h2>
+  <div class="row" style="flex-wrap:nowrap">
+    <div class="grp"><h3>🔢 Valor escalar</h3><p>Devuelven un único valor.</p>
+      <div class="chips step"><code><span class="g">SUM</span></code><code><span class="g">AVERAGE</span></code><code><span class="g">MAX</span></code><code><span class="g">MIN</span></code><code><span class="g">COUNTROWS</span></code><code><span class="g">DISTINCTCOUNT</span></code><code><span class="g">DIVIDE</span></code><code><span class="g">CALCULATE</span></code></div></div>
+    <div class="grp"><h3>▦ Tabla</h3><p>Devuelven filas y columnas.</p>
+      <div class="chips step"><code><span class="g">FILTER</span></code><code><span class="g">ALL</span></code><code><span class="g">TOPN</span></code><code><span class="g">SUMMARIZECOLUMNS</span></code><code><span class="g">ADDCOLUMNS</span></code><code><span class="g">SELECTCOLUMNS</span></code><code><span class="g">CALENDAR</span></code><code><span class="g">DATESYTD</span></code></div></div>
+  </div>
+</section>
+
+<section class="slide tight" data-sec="0">
+  <div class="eyebrow">Dato curioso</div>
+  <h2>¿Sabías que hay funciones que devuelven <em>un valor escalar y una tabla</em> al mismo tiempo?</h2>
+  <div class="callout step">Devuelven una tabla de <b>una sola columna y una sola fila</b>. Cuando DAX espera un valor escalar, la usa como tal.</div>
+  <div class="callout step">No son las únicas: esto aplica a <b>cualquier expresión</b> que devuelva una tabla de una columna y una fila. Si tiene más filas, DAX da error al usarla como escalar.</div>
+  <div class="grid" style="margin-top:18px">
+    <div class="card step"><small>FECHAS</small><h3><code><span class="g">LASTDATE</span></code> · <code><span class="g">FIRSTDATE</span></code></h3><p>Última y primera fecha visible en el contexto.</p></div>
+    <div class="card step"><small>FECHAS</small><h3><code><span class="g">ENDOFMONTH</span></code> · <code><span class="g">STARTOFMONTH</span></code></h3><p>También existen para trimestre (<code><span class="g">QUARTER</span></code>) y año (<code><span class="g">YEAR</span></code>).</p></div>
+    <div class="card step"><small>CON DATOS</small><h3><code><span class="g">LASTNONBLANK</span></code> · <code><span class="g">FIRSTNONBLANK</span></code></h3><p>Última y primera fecha que tiene un valor.</p></div>
+    <div class="card step"><small>COLUMNAS</small><h3><code><span class="g">VALUES</span></code> · <code><span class="g">DISTINCT</span></code></h3><p>Con un solo valor visible, se usan como un escalar.</p></div>
+  </div>
+  <div class="demobar solo step"><div class="dlabel"><span class="rec"></span>🎬 DEMO EN VIVO · probar LASTDATE como tabla y como valor escalar</div></div>
+</section>
+
+<section class="slide" data-sec="0">
+  <div class="eyebrow">¿Por qué importa?</div>
+  <h2>Identificar el tipo de resultado y usarlo con <em>CALCULATE</em></h2>
+  <ul class="pts">
+    <li class="step">Los filtros de <code><span class="g">CALCULATE</span></code> esperan una <b>expresión lógica</b> o una <b>tabla</b>.</li>
+    <li class="step">Si en un filtro colocas una función que devuelve un valor escalar, el resultado es un error o no es el esperado.</li>
+    <li class="step">Saber qué devuelve cada función evita esos errores.</li>
+  </ul>
+</section>
+
+<section class="slide tight" data-sec="0">
+  <div class="eyebrow">Comparativa</div>
+  <h2><em>MAX</em> frente a <em>LASTDATE</em> dentro de CALCULATE</h2>
+  <table class="cmp step">
+    <tr><th></th><th>MAX (valor escalar)</th><th>LASTDATE (tabla)</th></tr>
+    <tr><td>Devuelve</td><td>Un valor: una fecha</td><td>Una tabla de una fila con esa fecha</td></tr>
+    <tr><td>Como filtro directo</td><td class="bad"><code><span class="g">CALCULATE</span>( <span class="m">[Venta Total]</span>, <span class="g">MAX</span>( <span class="t">Calendario[Fecha]</span> ) )</code><br>Error: un escalar no es un filtro válido.</td><td class="ok"><code><span class="g">CALCULATE</span>( <span class="m">[Venta Total]</span>, <span class="g">LASTDATE</span>( <span class="t">Calendario[Fecha]</span> ) )</code><br>Funciona: ya es una tabla.</td></tr>
+    <tr><td>Cómo arreglarlo</td><td><code><span class="g">CALCULATE</span>( <span class="m">[Venta Total]</span>, <span class="t">Calendario[Fecha]</span> = <span class="g">MAX</span>( <span class="t">Calendario[Fecha]</span> ) )</code><br>Hay que convertirlo en una comparación.</td><td>No hace falta cambiar nada.</td></tr>
+  </table>
+  <div class="demobar solo step"><div class="dlabel"><span class="rec"></span>🎬 DEMO EN VIVO · ejecutar las dos versiones de CALCULATE y comparar el resultado</div></div>
+</section>
+
+<section class="slide tight" data-sec="0">
+  <div class="eyebrow">El reto de DAX</div>
+  <h2>Depurar <em>funciones de tabla</em>: lo más difícil de entender</h2>
+  <div class="callout step">Power BI no tiene un depurador que muestre el paso a paso de una fórmula con funciones que devuelven una tabla.</div>
+  <div class="row" style="margin-top:18px;flex-wrap:nowrap">
+    <div class="col card step" style="flex:1.15 1 0;order:2"><div class="codehead"><i></i><i></i><i></i></div><pre><span class="m">Ventas Top Clientes</span> =
+<span class="k">VAR</span> <span class="v">_Clientes_Con_Ventas</span> =
+    <span class="g">VALUES</span>( <span class="t">Cliente[NombreCliente]</span> )
+<span class="k">VAR</span> <span class="v">_Top_3</span> =
+    <span class="g">TOPN</span>( <span class="g">3</span>, <span class="v">_Clientes_Con_Ventas</span>, <span class="m">[Venta Total]</span>, <span class="k">DESC</span> )
+<span class="k">VAR</span> <span class="v">_Resultado</span> =
+    <span class="g">CALCULATE</span>( <span class="m">[Venta Total]</span>
+        , <span class="v">_Top_3</span>
+    )
+
+    <span class="k">RETURN</span>
+    <span class="v">_Resultado</span></pre><div class="cap">Dos variables guardan tablas intermedias que no podemos ver.</div></div>
+    <div class="col" style="flex:1 1 0;order:1;display:grid;gap:12px;grid-template-rows:repeat(3,1fr)">
+      <div class="card step"><h3>1 · Contar las filas</h3><p><code><span class="g">COUNTROWS</span>( <span class="v">_Top_3</span> )</code> dice cuántas filas tiene la tabla.</p></div>
+      <div class="card step"><h3>2 · Concatenar los valores</h3><p><code><span class="g">CONCATENATEX</span>( <span class="v">_Top_3</span>, <span class="t">Cliente[NombreCliente]</span>, <span class="s">", "</span> )</code> muestra las filas en una tarjeta.</p></div>
+      <div class="card step"><h3>3 · Funciones nuevas</h3><p><code><span class="g">TOJSON</span>( <span class="v">_Top_3</span> )</code> y <code><span class="g">TOCSV</span>( <span class="v">_Top_3</span> )</code> devuelven la tabla completa como texto, sin indicar las columnas. <a href="https://www.sqlbi.com/articles/debugging-dax-variables-using-tojson-and-tocsv/" target="_blank" style="color:var(--gold)">Artículo de SQLBI</a>.</p></div>
+    </div>
+  </div>
+  <div class="demobar solo step"><div class="dlabel"><span class="rec"></span>🎬 DEMO EN VIVO · ver el contenido de _Top_3 con COUNTROWS, CONCATENATEX y TOJSON</div></div>
+</section>
+
+<section class="slide tight" data-sec="0">
+  <div class="eyebrow">Vista de consulta DAX</div>
+  <h2>La <em>vista de consulta DAX</em></h2>
+  <div class="grid" style="grid-template-columns:repeat(3,1fr)">
+    <div class="card step"><small>CUÁNDO SE LANZÓ</small><h3>📅 Nació en 2023</h3><p>Llegó en <b>noviembre de 2023</b> como vista previa: la cuarta vista de Power BI Desktop, junto a Informe, Datos y Modelo. En <b>mayo de 2024</b> quedó disponible para todos.</p></div>
+    <div class="card step"><small>SU IMPORTANCIA</small><h3>⭐ Todo en un solo lugar</h3><p>Antes había que usar herramientas externas o una API para ejecutar consultas DAX. Ahora se hace dentro de Power BI Desktop.</p></div>
+    <div class="card step"><small>PARA QUÉ SIRVE</small><h3>🛠 Escribir y ver resultados</h3><p>Escribir, editar y ver el resultado de consultas DAX sobre tu modelo, sin crear visuales.</p></div>
+  </div>
+  <div class="callout step">Línea de tiempo: <b>nov 2023</b> vista previa → <b>dic 2023</b> funciones <code><span class="g">INFO</span></code> → <b>mayo 2024</b> disponibilidad general.</div>
+</section>
+
+<section class="slide tight" data-sec="0">
+  <div class="eyebrow">Vista de consulta DAX</div>
+  <h2>Casos de <em>uso</em></h2>
+  <div class="grid" style="grid-template-columns:repeat(3,1fr)">
+    <div class="card step"><small>1 · PROBAR</small><h3>Medidas sin tocar el modelo</h3><p>Defines y pruebas medidas con <code><span class="k">DEFINE</span> <span class="k">MEASURE</span></code> dentro de la consulta.</p></div>
+    <div class="card step"><small>2 · EXPLORAR</small><h3>Los datos del modelo</h3><p>Consultas rápidas: las primeras filas de una tabla o estadísticas de una columna.</p></div>
+    <div class="card step"><small>3 · ANALIZAR</small><h3>La consulta de un visual</h3><p>Copias la consulta desde el Analizador de rendimiento y la ejecutas aquí.</p></div>
+    <div class="card step"><small>4 · DOCUMENTAR</small><h3>El modelo</h3><p>Las funciones <code><span class="g">INFO</span></code> devuelven medidas, tablas y columnas como tablas.</p></div>
+    <div class="card step"><small>5 · ACTUALIZAR</small><h3>Varias medidas a la vez</h3><p>Añades o sobrescribes medidas del modelo con <b>Actualizar modelo con cambios</b>.</p></div>
+    <div class="card step"><small>6 · ASISTIR</small><h3>Escribir con Copilot</h3><p>Copilot escribe y explica consultas DAX por ti.</p></div>
+  </div>
+  <div class="callout step">También está disponible en la web, desde el servicio de Power BI o el portal de Fabric.</div>
+</section>
+
+<section class="slide tight" data-sec="1">
+  <div class="eyebrow">Ejercicio 1</div>
+  <h2>Explorar con <em>consultas rápidas</em></h2>
+  <div class="grid" style="grid-template-columns:repeat(3,1fr)">
+    <div class="card step"><small>CLIC DERECHO EN UNA TABLA</small><h3>Mostrar las 100 primeras filas</h3><p>Genera un <code><span class="g">TOPN</span></code> listo para ejecutar.</p></div>
+    <div class="card step"><small>CLIC DERECHO EN UNA COLUMNA</small><h3>Estadísticas de columna</h3><p>Mínimo, máximo, distintos y nulos de un vistazo.</p></div>
+    <div class="card step"><small>CLIC DERECHO EN UNA MEDIDA</small><h3>Definiciones de medidas</h3><p>Trae el código DAX de la medida al editor.</p></div>
+  </div>
+  <div class="callout step">Úsalas para ver cómo está escrita una consulta y modificarla, en lugar de partir de cero.</div>
+  <div class="demobar solo step"><div class="dlabel"><span class="rec"></span>🎬 DEMO EN VIVO · usar las consultas rápidas sobre una tabla, una columna y una medida</div></div>
+</section>
+
+<section class="slide" data-sec="1">
+  <div class="eyebrow">Ejercicio 2</div>
+  <h2>Probar un <em>escalar</em> y una <em>tabla</em></h2>
+  <div class="row">
+    <div class="col card step"><h3>🔢 Escalar <span class="tag g">1 VALOR</span></h3><div class="codehead"><i></i><i></i><i></i></div><pre><span class="c">// Falla: EVALUATE espera una tabla</span>
+<span class="k">EVALUATE</span>
+<span class="g">SUM</span>( <span class="t">Ventas[Cantidad]</span> )
+
+<span class="c">// Funciona: lo envolvemos en una fila</span>
+<span class="k">EVALUATE</span>
+<span class="g">ROW</span>( <span class="s">"Total"</span>, <span class="g">SUM</span>( <span class="t">Ventas[Cantidad]</span> ) )</pre><div class="cap">Funciones a probar: <code><span class="g">SUM</span></code>, <code><span class="g">MAX</span></code>, <code><span class="g">DIVIDE</span></code>, <code><span class="g">COUNTROWS</span></code>.</div></div>
+    <div class="col card step"><h3>▦ Tabla <span class="tag">N FILAS</span></h3><div class="codehead"><i></i><i></i><i></i></div><pre><span class="c">// Funciona directo con EVALUATE</span>
+<span class="k">EVALUATE</span>
+<span class="g">VALUES</span>( <span class="t">Producto[Categoria]</span> )
+
+<span class="k">EVALUATE</span>
+<span class="g">FILTER</span>( <span class="t">Ventas</span>, <span class="t">Ventas[Cantidad]</span> &gt;= <span class="g">10</span> )</pre><div class="cap">Funciones a probar: <code><span class="g">VALUES</span></code>, <code><span class="g">FILTER</span></code>, <code><span class="g">TOPN</span></code>, <code><span class="g">ALL</span></code>.</div></div>
+  </div>
+  <div class="demobar solo step"><div class="dlabel"><span class="rec"></span>🎬 DEMO EN VIVO · ejecutar cada consulta y comparar el resultado y los errores</div></div>
+</section>
+
+<section class="slide tight" data-sec="2">
+  <div class="eyebrow">Ejercicio 3</div>
+  <h2>Agrupar con <em>SUMMARIZECOLUMNS</em> y <em>SUMMARIZE</em></h2>
+  <div class="row" style="flex-wrap:nowrap;align-items:flex-start;gap:24px">
+    <div class="grid cxgrid" style="grid-template-columns:1fr 1fr;flex:1.55 1 0;gap:14px;margin:0">
+      <div class="card step cx"><small>1 · SUMMARIZECOLUMNS</small><h3>Por año y categoría</h3><div class="codehead"><i></i><i></i><i></i></div><pre><span class="k">EVALUATE</span>
+<span class="g">SUMMARIZECOLUMNS</span>(
+  <span class="t">Calendario[Año]</span>
+  , <span class="t">Producto[Categoria]</span>
+  , <span class="s">"Cantidad"</span>, <span class="g">SUM</span>( <span class="t">Ventas[Cantidad]</span> )
+)
+
+<span class="k">ORDER BY</span> <span class="t">Calendario[Año]</span> <span class="k">ASC</span>, <span class="m">[Cantidad]</span> <span class="k">DESC</span></pre></div>
+      <div class="card step cx"><small>2 · SUMMARIZE</small><h3>Con Calendario como base</h3><div class="codehead"><i></i><i></i><i></i></div><pre><span class="k">EVALUATE</span>
+<span class="g">SUMMARIZE</span>( <span class="t">Calendario</span>
+  , <span class="t">Calendario[Fecha]</span>
+  , <span class="s">"Cantidad"</span>, <span class="g">SUM</span>( <span class="t">Ventas[Cantidad]</span> )
+)
+
+<span class="k">ORDER BY</span> <span class="t">Calendario[Fecha]</span> <span class="k">ASC</span></pre></div>
+      <div class="card step cx"><small>3 · SUMMARIZECOLUMNS</small><h3>Por fecha</h3><div class="codehead"><i></i><i></i><i></i></div><pre><span class="k">EVALUATE</span>
+<span class="g">SUMMARIZECOLUMNS</span>(
+  <span class="t">Calendario[Fecha]</span>
+  , <span class="s">"Cantidad"</span>, <span class="g">SUM</span>( <span class="t">Ventas[Cantidad]</span> )
+)
+
+<span class="k">ORDER BY</span> <span class="t">Calendario[Fecha]</span> <span class="k">ASC</span></pre></div>
+      <div class="card step cx"><small>4 · SUMMARIZE</small><h3>Con Ventas como base</h3><div class="codehead"><i></i><i></i><i></i></div><pre><span class="k">EVALUATE</span>
+<span class="g">SUMMARIZE</span>( <span class="t">Ventas</span>
+  , <span class="t">Calendario[Fecha]</span>
+  , <span class="s">"Cantidad"</span>, <span class="g">SUM</span>( <span class="t">Ventas[Cantidad]</span> )
+)
+
+<span class="k">ORDER BY</span> <span class="t">Calendario[Fecha]</span> <span class="k">ASC</span></pre></div>
+    </div>
+    <div style="flex:1 1 0;margin-top:6px">
+      <ul class="pts">
+        <li class="step"><code><span class="k">EVALUATE</span></code> inicia toda consulta DAX y devuelve una tabla. Es la única palabra obligatoria; <code><span class="k">ORDER BY</span></code> y el resto son opcionales.</li>
+        <li class="step"><code><span class="k">ORDER BY</span></code> (opcional) ordena el resultado y va al final de la consulta.</li>
+        <li class="step"><code><span class="k">ASC</span></code> ordena de menor a mayor y <code><span class="k">DESC</span></code>, de mayor a menor.</li>
+      </ul>
+      <ul class="pts" style="margin-top:26px">
+        <li class="step"><code><span class="g">SUMMARIZECOLUMNS</span></code> es lo que Power BI genera por debajo para una matriz: columnas de agrupación y luego las medidas.</li>
+        <li class="step"><code><span class="g">SUMMARIZE</span></code> devuelve las filas de su primer argumento: con <code><span class="t">Calendario</span></code> salen todas las fechas, y con <code><span class="t">Ventas</span></code> solo las que tienen ventas.</li>
+        <li class="step"><b>Prueba:</b> añade <code><span class="t">Territorio[Pais]</span></code> como tercera columna de agrupación en la tarjeta 1.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="demobar solo step"><div class="dlabel"><span class="rec"></span>🎬 DEMO EN VIVO · ejecutar las cuatro consultas y comparar las filas que devuelve cada una</div></div>
+</section>
+
+<section class="slide tight" data-sec="3">
+  <div class="eyebrow">Ejercicio 4</div>
+  <h2>Definir una medida con <em>DEFINE</em></h2>
+  <div class="row">
+    <div class="col card step"><div class="codehead"><i></i><i></i><i></i></div><pre><span class="k">DEFINE</span>
+  <span class="k">MEASURE</span> <span class="t">Medidas</span><span class="m">[Ventas YTD]</span> =
+    <span class="g">CALCULATE</span>( <span class="m">[Venta Total]</span>
+      , <span class="g">DATESYTD</span>( <span class="t">Calendario[Fecha]</span> )
+    )
+
+<span class="k">EVALUATE</span>
+<span class="g">SUMMARIZECOLUMNS</span>(
+  <span class="t">Calendario[Año]</span>, <span class="t">Calendario[Mes]</span>,
+  <span class="s">"YTD"</span>, <span class="m">[Ventas YTD]</span>
+)</pre></div>
+    <div class="col"><ul class="pts">
+      <li class="step"><code><span class="k">DEFINE</span></code> abre la sección donde declaras medidas, variables o tablas que solo viven en la consulta.</li>
+      <li class="step"><code><span class="k">MEASURE</span></code> crea una medida temporal con la forma <code>Tabla[Nombre] = fórmula</code>. La tabla indica dónde se guardaría la medida si la llevas al modelo.</li>
+      <li class="step">La medida solo existe dentro de la consulta: <b>no toca el modelo</b>.</li>
+      <li class="step">Puedes probarla y corregirla las veces que haga falta.</li>
+      <li class="step">Si una medida del modelo se llama igual, la de <code><span class="k">DEFINE</span></code> tiene prioridad en esa consulta.</li>
+    </ul></div>
+  </div>
+  <div class="demobar solo step"><div class="dlabel"><span class="rec"></span>🎬 DEMO EN VIVO · definir Ventas YTD y probarla dentro de la consulta</div></div>
+</section>
+
+<section class="slide tight" data-sec="3">
+  <div class="eyebrow">Ejercicio 5</div>
+  <h2>Ordenar con <em>VAR</em> y <em>RETURN</em></h2>
+  <div class="row">
+    <div class="col card step"><div class="codehead"><i></i><i></i><i></i></div><pre><span class="k">DEFINE</span>
+  <span class="k">MEASURE</span> <span class="t">Medidas</span><span class="m">[Crecimiento %]</span> =
+    <span class="k">VAR</span> <span class="v">_Actual</span>   = <span class="m">[Venta Total]</span>
+    <span class="k">VAR</span> <span class="v">_Anterior</span> =
+        <span class="g">CALCULATE</span>(
+            <span class="m">[Venta Total]</span>
+            , <span class="g">SAMEPERIODLASTYEAR</span>( <span class="t">Calendario[Fecha]</span> )
+        )
+    <span class="k">VAR</span> <span class="v">_Resultado</span> = <span class="g">DIVIDE</span>( <span class="v">_Actual</span> - <span class="v">_Anterior</span>, <span class="v">_Anterior</span> )
+    <span class="k">RETURN</span>
+        <span class="v">_Resultado</span>
+
+<span class="k">EVALUATE</span>
+<span class="g">SUMMARIZECOLUMNS</span>( <span class="t">Calendario[Año]</span>, <span class="s">"Crec"</span>, <span class="m">[Crecimiento %]</span> )</pre></div>
+    <div class="col"><ul class="pts">
+      <li class="step"><code><span class="k">VAR</span></code> guarda un cálculo en una variable que se evalúa una sola vez y se puede reutilizar.</li>
+      <li class="step"><code><span class="k">RETURN</span></code> indica el resultado final: es lo único que devuelve la medida.</li>
+      <li class="step">Los nombres de las variables empiezan con guion bajo, por ejemplo <code><span class="v">_Actual</span></code>.</li>
+      <li class="step">Para ver un paso intermedio, cambia el <code><span class="k">RETURN</span></code> y devuelve solo <code><span class="v">_Anterior</span></code>.</li>
+      <li class="step">Con <code class="key">Shift</code>+<code class="key">Alt</code>+<code class="key">F</code> das formato al código.</li>
+    </ul></div>
+  </div>
+  <div class="demobar solo step"><div class="dlabel"><span class="rec"></span>🎬 DEMO EN VIVO · calcular el crecimiento y ver el valor de _Anterior</div></div>
+</section>
+
+<section class="slide tight" data-sec="4">
+  <div class="eyebrow">Ejercicio 6</div>
+  <h2>Documentar el modelo con <em>INFO</em></h2>
+  <div class="row">
+    <div class="col card step"><div class="codehead"><i></i><i></i><i></i></div><pre><span class="c">// Todas las medidas y su código</span>
+<span class="k">EVALUATE</span>
+<span class="g">INFO.MEASURES</span>()
+
+<span class="c">// Tablas y columnas del modelo</span>
+<span class="k">EVALUATE</span>
+<span class="g">INFO.TABLES</span>()
+
+<span class="k">EVALUATE</span>
+<span class="g">INFO.COLUMNS</span>()</pre><div class="cap">Ejecuta cada <code><span class="k">EVALUATE</span></code> por separado: se ejecuta la consulta donde está el cursor.</div></div>
+    <div class="col" style="display:flex;flex-direction:column;gap:22px">
+      <div class="card step"><div class="codehead"><i></i><i></i><i></i></div><pre><span class="c">// Solo las columnas calculadas y su fórmula</span>
+<span class="k">EVALUATE</span>
+<span class="g">SELECTCOLUMNS</span>(
+  <span class="g">FILTER</span>( <span class="g">INFO.COLUMNS</span>(), <span class="t">[Type]</span> <span class="k">IN</span> { 2, 4 } ),
+  <span class="s">"Columna"</span>, <span class="t">[ExplicitName]</span>,
+  <span class="s">"Fórmula"</span>, <span class="t">[Expression]</span>
+)</pre></div>
+      <ul class="pts">
+      <li class="step">Las funciones <code><span class="g">INFO</span></code> devuelven los metadatos del modelo como tablas.</li>
+      <li class="step">Las funciones <code><span class="g">INFO.VIEW</span></code> son la versión legible de cuatro <code><span class="g">INFO</span></code>: tablas, columnas, medidas y relaciones. Muestran nombres y tipos en texto en lugar de códigos.</li>
+      <li class="step"><b>Diferencia clave:</b> las <code><span class="g">INFO</span></code> solo sirven en la vista de consulta DAX; las <code><span class="g">INFO.VIEW</span></code> también sirven en tablas calculadas y medidas.</li>
+      <li class="step">Sirven para auditar medidas o pasar la lista a la IA como contexto.</li>
+    </ul>
+    </div>
+  </div>
+  <div class="demobar solo step"><div class="dlabel"><span class="rec"></span>🎬 DEMO EN VIVO · listar medidas, tablas, columnas y columnas calculadas con INFO</div></div>
+</section>
+
+<section class="slide" data-sec="4">
+  <div class="eyebrow">Reto final</div>
+  <h2>Clientes <em>nuevos</em> y <em>perdidos</em></h2>
+  <ul class="pts">
+    <li class="step"><b>1.</b> Obtén la tabla de clientes del año con <code><span class="g">VALUES</span>( <span class="t">Ventas[IdCliente]</span> )</code>.</li>
+    <li class="step"><b>2.</b> Obtén los clientes del año anterior con <code><span class="g">CALCULATETABLE</span></code> y <code><span class="g">DATEADD</span></code>.</li>
+    <li class="step"><b>3.</b> Clientes perdidos: los que compraron el año anterior y este año no, con <code><span class="g">EXCEPT</span></code>.</li>
+    <li class="step"><b>4.</b> Clientes nuevos: los que compraron este año y nunca habían comprado antes, con <code><span class="g">EXCEPT</span></code> y todas las fechas previas.</li>
+    <li class="step"><b>5.</b> Cuenta las filas con <code><span class="g">COUNTROWS</span></code>, pruébalo en la vista de consulta y llévalo a <code><span class="t">Medidas</span></code>.</li>
+  </ul>
+</section>
+
+<section class="slide tight" data-sec="4">
+  <div class="eyebrow">Para seguir aprendiendo</div>
+  <h2>Fuentes y <em>recursos</em></h2>
+  <div class="grid fgrid">
+    <div class="card src"><h3>Vista de consulta DAX</h3><ul><li><a href="https://learn.microsoft.com/power-bi/transform-model/dax-query-view" target="_blank" rel="noopener">Trabajar con la vista de consulta DAX</a><small>Microsoft Learn</small></li><li><a href="https://learn.microsoft.com/dax/dax-queries" target="_blank" rel="noopener">Consultas DAX: EVALUATE, DEFINE y ORDER BY</a><small>Microsoft Learn</small></li><li><a href="https://powerbi.microsoft.com/en-gb/blog/deep-dive-into-dax-query-view-and-writing-dax-queries/" target="_blank" rel="noopener">Análisis a fondo de la vista de consulta DAX</a><small>Blog de Power BI</small></li></ul></div>
+    <div class="card src"><h3>Agrupar y resumir</h3><ul><li><a href="https://www.sqlbi.com/articles/introducing-summarizecolumns" target="_blank" rel="noopener">Introducing SUMMARIZECOLUMNS</a><small>SQLBI</small></li><li><a href="https://www.sqlbi.com/articles/all-the-secrets-of-summarize" target="_blank" rel="noopener">All the secrets of SUMMARIZE</a><small>SQLBI</small></li><li><a href="https://www.sqlbi.com/articles/summarizecolumns-best-practices/" target="_blank" rel="noopener">SUMMARIZECOLUMNS best practices</a><small>SQLBI</small></li></ul></div>
+    <div class="card src"><h3>Depurar funciones de tabla</h3><ul><li><a href="https://www.sqlbi.com/articles/debugging-dax-variables-using-tojson-and-tocsv/" target="_blank" rel="noopener">Debugging DAX variables using TOJSON and TOCSV</a><small>Artículo · SQLBI</small></li><li><a href="https://www.sqlbi.com/tv/debug-dax-variables-using-tojson-and-tocsv/" target="_blank" rel="noopener">Debug DAX variables using TOJSON and TOCSV</a><small>Video · SQLBI</small></li></ul></div>
+    <div class="card src"><h3>Funciones INFO</h3><ul><li><a href="https://learn.microsoft.com/dax/info-functions-dax" target="_blank" rel="noopener">Funciones INFO de DAX</a><small>Microsoft Learn</small></li><li><a href="https://learn.microsoft.com/en-us/dax/info-view-measures-function-dax" target="_blank" rel="noopener">INFO.VIEW.MEASURES</a><small>Microsoft Learn</small></li><li><a href="https://powerbi.microsoft.com/blog/dax-query-view-introduces-new-info-dax-functions" target="_blank" rel="noopener">Nuevas funciones INFO en la vista de consulta</a><small>Blog de Power BI</small></li><li><a href="https://dax.guide/info-measures/" target="_blank" rel="noopener">INFO.MEASURES</a><small>DAX Guide</small></li></ul></div>
+    <div class="card src"><h3>Referencia general de DAX</h3><ul><li><a href="https://learn.microsoft.com/es-es/dax/" target="_blank" rel="noopener">Referencia de DAX en español</a><small>Microsoft Learn</small></li><li><a href="https://dax.guide" target="_blank" rel="noopener">DAX Guide: todas las funciones</a><small>dax.guide</small></li></ul></div></div>
+</section>
+
+</main>
+<div class="bar" id="bar"></div>
+<footer><span id="count"></span><span class="hint">Clic / → / Espacio: avanzar · ← : volver · F: pantalla completa</span></footer>
+
+<script>
+(function(){
+  var secs=[["Conceptos","Preguntas y demo"],["Conocer","Abrir y ejecutar"],["Consultar","EVALUATE"],["Medidas","DEFINE y VAR"],["Al modelo","Guardar y reto"]];
+  var nav=document.getElementById("nav");
+  secs.forEach(function(s,i){
+    var d=document.createElement("div");d.className="tab";
+    d.innerHTML='<span class="n">0'+(i+1)+'</span><div><b>'+s[0]+'</b><small>'+s[1]+'</small></div>';
+    d.onclick=function(e){e.stopPropagation();goSec(i)};nav.appendChild(d);
+  });
+  var tabs=[].slice.call(nav.children);
+  var slides=[].slice.call(document.querySelectorAll(".slide"));
+  slides.forEach(function(sl){var w=document.createElement("div");w.className="fit";while(sl.firstChild)w.appendChild(sl.firstChild);sl.appendChild(w);});
+  var ZMAX=1.9,DZ=1.5;
+  function refit(){
+    slides.forEach(function(sl){
+      var w=sl.firstElementChild,cs=getComputedStyle(sl);
+      var avail=sl.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom);
+      var dbs=w.querySelectorAll('.demobar');
+      function setz(v){w.style.zoom=v;for(var i=0;i<dbs.length;i++)dbs[i].style.zoom=DZ/v}
+      var z=ZMAX; setz(z);
+      while(z>0.7&&w.getBoundingClientRect().height>avail){z=Math.round((z-0.04)*100)/100;setz(z)}
+      
+    });
+  }
+  var rt;window.addEventListener("resize",function(){clearTimeout(rt);rt=setTimeout(refit,80)});
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(refit);
+  window.addEventListener("load",refit);
+  var si=0, st=0;
+  function steps(i){return [].slice.call(slides[i].querySelectorAll(".step"))}
+  function render(dir){
+    slides.forEach(function(s,i){
+      s.classList.toggle("on",i===si);
+      s.classList.toggle("past",i<si);
+      var ss=steps(i);
+      ss.forEach(function(e,k){e.classList.toggle("show", i<si || (i===si && k<st))});
+    });
+    var sec=+slides[si].dataset.sec;
+    tabs.forEach(function(t,i){t.classList.toggle("on",i===sec);t.classList.toggle("done",i<sec)});
+    document.getElementById("count").textContent=(si+1)+" / "+slides.length;
+    document.getElementById("bar").style.width=((si+1)/slides.length*100)+"%";
+    location.hash="#"+(si+1);
+  }
+  function next(){
+    var n=steps(si).length;
+    if(st<n){st++}else if(si<slides.length-1){si++;st=0}
+    render();
+  }
+  function prev(){
+    if(st>0){st--}else if(si>0){si--;st=steps(si).length}
+    render();
+  }
+  function goSec(i){
+    for(var k=0;k<slides.length;k++){if(+slides[k].dataset.sec===i){si=k;st=0;break}}
+    render();
+  }
+  document.addEventListener("click",function(e){
+    if(e.target.closest("a,pre,.copybtn")) return;
+    var sel=window.getSelection&&String(window.getSelection());
+    if(sel&&sel.length) return;
+    next();
+  });
+  [].slice.call(document.querySelectorAll("pre")).forEach(function(pre){
+    var host=pre.parentNode; host.style.position="relative";
+    var b=document.createElement("button"); b.type="button"; b.className="copybtn"; b.textContent="Copiar";
+    b.onclick=function(e){
+      e.stopPropagation();
+      var txt=pre.innerText;
+      function ok(){b.textContent="¡Copiado!";setTimeout(function(){b.textContent="Copiar"},1500)}
+      function fb(){var t=document.createElement("textarea");t.value=txt;document.body.appendChild(t);t.select();try{document.execCommand("copy");ok()}catch(x){}document.body.removeChild(t)}
+      if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(ok,fb)}else{fb()}
+    };
+    host.appendChild(b);
+  });
+  document.addEventListener("keydown",function(e){
+    if(["ArrowRight","ArrowDown"," ","PageDown","Enter"].indexOf(e.key)>-1){e.preventDefault();next()}
+    else if(["ArrowLeft","ArrowUp","PageUp","Backspace"].indexOf(e.key)>-1){e.preventDefault();prev()}
+    else if(e.key==="f"||e.key==="F"){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()}
+    else if(e.key==="Home"){si=0;st=0;render()}
+    else if(e.key==="End"){si=slides.length-1;st=0;render()}
+  });
+  var h=parseInt(location.hash.slice(1),10); if(h>=1&&h<=slides.length) si=h-1;
+  render();
+})();
+</script>
+</body>
+</html>
