@@ -7,50 +7,48 @@
 <style>
 :root{--bg:#14151a;--card:rgba(255,255,255,.045);--line:rgba(255,255,255,.12);--gold:#F2C811;--gold-dim:rgba(242,200,17,.16);--text:#f3f4f7;--mute:#9a9ca8}
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:"Segoe UI",Inter,system-ui,sans-serif}
-body{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:48px 8vw;
-  background:radial-gradient(900px 500px at 85% 10%,rgba(242,200,17,.12),transparent 60%),radial-gradient(700px 500px at 0% 100%,rgba(168,155,240,.08),transparent 60%),var(--bg)}
-.brand{display:flex;align-items:center;gap:14px;margin-bottom:46px}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:"Segoe UI",Inter,system-ui,sans-serif}
+body{background:radial-gradient(900px 500px at 85% 10%,rgba(242,200,17,.12),transparent 60%),radial-gradient(700px 500px at 0% 100%,rgba(168,155,240,.08),transparent 60%),var(--bg)}
+#intro{position:fixed;inset:0;display:grid;place-items:center}
+#fit{width:1560px;padding:0 20px}
+.brand{display:flex;align-items:center;gap:14px;margin-bottom:34px}
 .logo{width:42px;height:42px;border-radius:11px;background:var(--gold);display:grid;place-items:center}
 .logo svg{width:22px;height:22px}
 .brand b{display:block;font-size:18px}.brand small{color:var(--mute);font-size:13px}
+.main{display:grid;grid-template-columns:1fr 1.12fr;gap:56px;align-items:center}
 .eyebrow{color:var(--gold);font-weight:800;letter-spacing:.18em;font-size:15px;text-transform:uppercase;margin-bottom:14px}
-h1{font-size:clamp(40px,6vw,82px);line-height:1.05;font-weight:700;letter-spacing:-.01em;max-width:1000px}
+h1{font-size:76px;line-height:1.05;font-weight:700;letter-spacing:-.01em}
 em{color:var(--gold);font-style:normal}
-.lead{color:var(--mute);font-size:clamp(16px,1.6vw,22px);margin-top:22px;max-width:760px;line-height:1.5}
-.layout{display:flex;flex-direction:column;align-items:flex-start;gap:28px;margin-top:40px;max-width:1100px}
-.go{display:inline-block;text-decoration:none;background:var(--gold);color:#14151a;font-weight:800;font-size:20px;padding:16px 34px;border-radius:14px;transition:opacity .5s,transform .5s,box-shadow .25s}
-.go{opacity:0;visibility:hidden;pointer-events:none;transform:translateY(10px)}
+.lead{color:var(--mute);font-size:22px;margin-top:22px;line-height:1.5}
+.go{display:inline-block;margin-top:34px;text-decoration:none;background:var(--gold);color:#14151a;font-weight:800;font-size:22px;padding:16px 36px;border-radius:14px;transition:opacity .5s,transform .5s,box-shadow .25s;opacity:0;visibility:hidden;pointer-events:none;transform:translateY(10px)}
 .go.show{opacity:1;visibility:visible;pointer-events:auto;transform:none}
 .go.show:hover{transform:translateY(-3px);box-shadow:0 10px 30px rgba(242,200,17,.28)}
-.btns{display:flex;flex-direction:column;gap:22px}
-a.btn{display:block;flex:1;text-decoration:none;color:var(--text);background:var(--card);border:1px solid var(--line);border-radius:20px;padding:28px 30px;transition:.25s}
-a.btn:hover{border-color:var(--gold);background:var(--gold-dim);transform:translateY(-4px)}
-a.btn .n{width:34px;height:34px;border-radius:50%;background:var(--gold);color:#14151a;display:grid;place-items:center;font-weight:800;font-size:14px;margin-bottom:16px}
-a.btn h2{font-size:28px;margin-bottom:8px}
-a.btn p{color:var(--mute);font-size:16px;line-height:1.5}
-a.btn span{display:inline-block;margin-top:18px;color:var(--gold);font-weight:700;font-size:15px}
-.speaker{display:flex;align-items:flex-start;gap:28px;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:34px}
-.speaker img{width:170px;height:170px;border-radius:50%;object-fit:cover;object-position:center 20%;border:4px solid var(--gold);flex-shrink:0;margin-top:14px}
-.speaker h3{font-size:28px;margin-bottom:5px}
-.speaker .role{color:var(--gold);font-size:16px;font-weight:700;margin-bottom:14px;line-height:1.4}
-.speaker .bio{color:var(--text);font-size:15px;line-height:1.6;margin-bottom:16px;font-weight:500}
-.speaker ul{list-style:none;display:grid;gap:8px}
-.speaker li{color:var(--mute);font-size:15px;line-height:1.5;padding-left:18px;position:relative}
-.speaker li::before{content:"";position:absolute;left:0;top:8px;width:6px;height:6px;border-radius:50%;background:var(--gold)}
-@media(max-width:900px){.layout{grid-template-columns:1fr}}
-@media(max-width:700px){.speaker{flex-direction:column;align-items:center;text-align:center}.speaker li{text-align:left}}
+.speaker{display:flex;align-items:flex-start;gap:30px;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:38px}
+.speaker img{width:190px;height:190px;border-radius:50%;object-fit:cover;object-position:center 20%;border:4px solid var(--gold);flex-shrink:0;margin-top:10px}
+.speaker h3{font-size:32px;margin-bottom:6px}
+.speaker .role{color:var(--gold);font-size:18px;font-weight:700;margin-bottom:14px;line-height:1.4}
+.speaker .bio{color:var(--text);font-size:17px;line-height:1.6;margin-bottom:18px;font-weight:500}
+.speaker ul{list-style:none;display:grid;gap:10px}
+.speaker li{color:var(--mute);font-size:17px;line-height:1.5;padding-left:18px;position:relative}
+.speaker li::before{content:"";position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:50%;background:var(--gold)}
+#deck{position:fixed;inset:0;width:100vw;height:100vh;border:0;background:var(--bg);display:none}
+body.run #intro{display:none}
+body.run #deck{display:block}
 </style>
 </head>
 <body>
+<div id="intro"><div id="fit">
   <div class="brand">
     <div class="logo"><svg viewBox="0 0 24 24" fill="#14151a"><rect x="3" y="12" width="4" height="9" rx="1"/><rect x="10" y="6" width="4" height="15" rx="1"/><rect x="17" y="2" width="4" height="19" rx="1"/></svg></div>
     <div><b>Vista de consulta DAX · Taller práctico</b><small>Escribe, prueba y lleva tu DAX al modelo</small></div>
   </div>
-  <div class="eyebrow">Taller práctico</div>
-  <h1>Vista de consulta <em>DAX</em></h1>
-  <p class="lead">Aprende a escribir, ejecutar y probar consultas y medidas DAX directamente en Power BI Desktop, sin crear visuales.</p>
-  <div class="layout">
+  <div class="main">
+    <div>
+      <div class="eyebrow">Taller práctico</div>
+      <h1>Vista de consulta <em>DAX</em></h1>
+      <p class="lead">Aprende a escribir, ejecutar y probar consultas y medidas DAX directamente en Power BI Desktop, sin crear visuales.</p>
+      <a class="go" href="01_consulta_dax_practico.html">Comenzar el taller →</a>
+    </div>
     <div class="speaker">
       <img src="deyvit-jeri.png" alt="Deyvit Jeri">
       <div>
@@ -65,18 +63,46 @@ a.btn span{display:inline-block;margin-top:18px;color:var(--gold);font-weight:70
         </ul>
       </div>
     </div>
-    <a class="go" href="01_consulta_dax_practico.html">Comenzar el taller →</a>
   </div>
+</div></div>
+<iframe id="deck" title="Taller" allow="fullscreen; clipboard-write" allowfullscreen></iframe>
 <script>
 (function(){
-  var b=document.querySelector(".go");
-  function show(){b.classList.add("show")}
-  document.addEventListener("click",function(e){if(!b.classList.contains("show")&&!e.target.closest(".go")){show()}});
+  var go=document.querySelector(".go"),fit=document.getElementById("fit"),deck=document.getElementById("deck");
+  function refit(){
+    fit.style.zoom=1;
+    var z=Math.min(innerWidth/(fit.offsetWidth+40),innerHeight/(fit.offsetHeight+60));
+    fit.style.zoom=Math.max(.5,Math.min(z,1.8));
+  }
+  window.addEventListener("resize",refit);window.addEventListener("load",refit);
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(refit);
+  var imgs=document.images;for(var i=0;i<imgs.length;i++)imgs[i].addEventListener("load",refit);
+  refit();
+  function start(){
+    if(!deck.getAttribute("src"))deck.setAttribute("src",go.getAttribute("href"));
+    document.body.classList.add("run");
+    function foco(){try{deck.focus();deck.contentWindow.focus()}catch(e){}}
+    deck.onload=foco;foco();setTimeout(foco,200);setTimeout(foco,700);
+  }
+  go.addEventListener("click",function(e){e.preventDefault();start()});
+  document.addEventListener("click",function(e){if(!go.classList.contains("show")&&!e.target.closest(".go")){go.classList.add("show")}});
+  window.addEventListener("message",function(e){
+    if(e.source===deck.contentWindow&&e.data&&e.data.fs){
+      if(document.fullscreenElement){document.exitFullscreen()}
+      else{var r=document.documentElement.requestFullscreen();if(r&&r.catch)r.catch(function(){deck.contentWindow.postMessage({own:1},"*")})}
+    }
+  });
   document.addEventListener("keydown",function(e){
+    if(document.body.classList.contains("run")){
+      if(e.key==="f"||e.key==="F"){e.preventDefault();if(document.fullscreenElement){document.exitFullscreen()}else{document.documentElement.requestFullscreen()}return}
+      try{deck.contentWindow.postMessage({tecla:e.key},"*")}catch(x){}
+      if([" ","ArrowRight","ArrowLeft","ArrowUp","ArrowDown","PageUp","PageDown","Backspace"].indexOf(e.key)>-1)e.preventDefault();
+      return;
+    }
     var k=e.key;
     if(k==="f"||k==="F"){e.preventDefault();if(document.fullscreenElement){document.exitFullscreen()}else{document.documentElement.requestFullscreen()}return}
-    if(!b.classList.contains("show")){if(k===" "||k==="ArrowRight"||k==="ArrowDown"||k==="Enter"||k==="PageDown"){e.preventDefault();show()}}
-    else if(k==="Enter"||k==="ArrowRight"){location.href=b.getAttribute("href")}
+    if(!go.classList.contains("show")){if(k===" "||k==="ArrowRight"||k==="ArrowDown"||k==="Enter"||k==="PageDown"){e.preventDefault();go.classList.add("show")}}
+    else if(k==="Enter"||k==="ArrowRight"){start()}
   });
 })();
 </script>
