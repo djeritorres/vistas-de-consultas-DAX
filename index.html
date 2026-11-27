@@ -74,6 +74,7 @@ a.btn span{display:inline-block;margin-top:18px;color:var(--gold);font-weight:70
   document.addEventListener("click",function(e){if(!b.classList.contains("show")&&!e.target.closest(".go")){show()}});
   document.addEventListener("keydown",function(e){
     var k=e.key;
+    if(k==="f"||k==="F"){e.preventDefault();if(document.fullscreenElement){document.exitFullscreen()}else{document.documentElement.requestFullscreen()}return}
     if(!b.classList.contains("show")){if(k===" "||k==="ArrowRight"||k==="ArrowDown"||k==="Enter"||k==="PageDown"){e.preventDefault();show()}}
     else if(k==="Enter"||k==="ArrowRight"){location.href=b.getAttribute("href")}
   });
